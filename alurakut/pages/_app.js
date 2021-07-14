@@ -18,6 +18,12 @@ const GlobalStyle = createGlobalStyle`
     flex-direction: column;
   }
 
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
 `;
 
 const theme = {
