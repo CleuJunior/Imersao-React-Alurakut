@@ -1,4 +1,6 @@
 import React from "react";
+import nookies from 'nookies';
+import jwt from 'jsonwebtoken';
 import MainGrid from "../src/components/MainGrid";
 import Box from "../src/components/Box";
 import {
@@ -56,8 +58,8 @@ function ProfileRelationsBox(propriedades) {
   );
 }
 
-export default function Home() {
-  const githubUser = "CleuJunior";
+export default function Home(props) {
+  const usuarioAleatorio = props.githubUser;
   const [comunidades, setComunidades] = React.useState([]);
   console.log("Testes: ", comunidades);
   // const comunidades = []
@@ -121,7 +123,7 @@ export default function Home() {
       <AlurakutMenu />
       <MainGrid>
         <div className="profileArea" style={{ gridArea: "profileArea" }}>
-          <ProfileSidebar githubUser={githubUser} />
+          <ProfileSidebar githubUser={usuarioAleatorio} />
         </div>
         <div className="welcomeArea" style={{ gridArea: "welcomeArea" }}>
           <Box>
@@ -154,15 +156,15 @@ export default function Home() {
                   },
                   body: JSON.stringify(comunidade)
                 })
-                .then(async (response) => {
-                  const dados = await response.json();
-                  console.log(dados.registroCriado);
-                  const comunidade = dados.registroCriado;
-                  const comunidadesAtualizadas = [...comunidades, comunidade];
-                  setComunidades(comunidadesAtualizadas)
-                })
+                  .then(async (response) => {
+                    const dados = await response.json();
+                    console.log(dados.registroCriado);
+                    const comunidade = dados.registroCriado;
+                    const comunidadesAtualizadas = [...comunidades, comunidade];
+                    setComunidades(comunidadesAtualizadas)
+                  })
 
-                
+
               }}
             >
               <div>
@@ -227,4 +229,35 @@ export default function Home() {
       </MainGrid>
     </>
   );
+}
+
+
+export async function getServerSideProps(ctx) {
+  const cookies = nookies.get(ctx);
+  const token = cookies.USER_TOKEN;
+  const decodedToken = jwt.decode(token);
+  const githubUser = decodedToken?.githubUser;
+
+  if (!githubUser) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    }
+  }
+
+  // const followers = await fetch(`https://api.github.com/users/${githubUser}/followers`)
+  //   .then((res) => res.json())
+  //   .then(followers => followers.map((follower) => ({
+  //     id: follower.id,
+  //     name: follower.login,
+  //     image: follower.avatar_url,
+  //   })));
+
+  return {
+    props: {
+      githubUser,
+    }
+  }
 }
